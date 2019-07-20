@@ -1,0 +1,263 @@
+---
+title: "Basic Dealing With JSON Data Using R"
+author: "By Aep Hidayatuloh"
+date: "Last Update: `r format(Sys.Date(), '%d %B %Y')`"
+output: 
+  html_notebook:
+    number_sections: yes
+    theme: spacelab
+    df_print: paged
+    toc: true
+    toc_depth: 4
+    toc_float: true
+---
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 14px;
+  }
+td {  /* Table  */
+  font-size: 12px;
+}
+h1.title {
+  font-size: 38px;
+  color: lightblue;
+  font-weight: bold;
+}
+h1 { /* Header 1 */
+  font-size: 24px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+  font-size: 20px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 16px;
+#  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+h4 { /* Header 4 */
+  font-size: 14px;
+  color: DarkBlue;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 12px;
+}
+</style>
+
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 6.5, results = 'hold', warning = FALSE, fig.show = 'hold', message = FALSE) 
+options(scipen = 99)
+```
+
+
+<p align="center">
+<img src="json_logo.png" width="400px">
+</p>
+
+
+
+# Objective
+
+Membaca data dari file berupa JSON dengan R.
+
+# R and Data
+
+Kemampuan R dalam mengolah data tentunya sudah tidak diragukan lagi. Banyak sekali source data yang dapat diintegrasikan dengan R, baik berupa file data maupun database.
+
+<p align="center">
+<img src="data_R.png" width="400px">
+<p align="center"><label>R and Data</label></p>
+</p>
+
+R juga bisa membaca file berupa pdf dan gambar sebagai input data, tentunya dengan memanfaatkan berbagai package yang tersedia. Salah satu format data yang mampu dibaca oleh R yang akan dibahas pada tulisan ini adalah file **JSON**.
+
+# JSON
+
+JSON adalah singkatan dari **JavaScript Object Notation**. Ya, JSON adalah sebuah format penyimpanan data dengan berdasarkan JavaScript. File JSON mirip seperti data pada text file biasa, hanya saja dengan berbagai aturan dan format yang sesuai dengan sintaksis pada JavaScript.
+
+* Data ditulis berpasangan nama dan nilainya (data aja berpasangan)
+* Data dipisahkan oleh tanda koma
+* Tanda kurung kurawal (curly braces) berisi sebuah object, {objects} $\Rightarrow$ nilai dari data
+* Tanda kurung siku (square brackets) berisi arrays, [arrays] $\Rightarrow$ list
+
+<p align="center">
+<img src="json_form.png" width="400px">
+<p align="center"><label>JSON name:value pairs</label></p>
+</p>
+
+Pada JSON, nilai yang ada harus berupa salah satu dari tipe data berikut.
+
+* String 
+```{r echo=FALSE}
+cat('{"name": "John"}')
+```
+* Numeric
+```{r echo=FALSE}
+cat('{"age": 38}')
+```
+* JSON Object 
+```{r echo=FALSE}
+cat('{ 
+  "employee": {"name": "John", "age": 30, "city": "New York"}
+}')
+```
+* Array 
+```{r echo=FALSE}
+cat('{ 
+  "employees": [ "John", "Anna", "Peter" ] 
+}')
+```
+* Boolean (*true*/*false*) 
+```{r echo=FALSE}
+cat('{"male": true}')
+```
+* *Null* 
+```{r echo=FALSE}
+cat('{"midname": null}')
+```
+
+Bagaimana dengan data berupa tanggal? JSON menyimpannya sebagai teks, kecuali untuk tanggal yang semuanya numerik. Misalnya `20190711` dan tanpa tanda kutip (") akan dibaca sebagai numerik.
+
+# Read JSON Data
+
+Kita dapat dengan mudah membaca/import data dari file JSON dengan menggunakan package [`jsonlite`](https://github.com/jeroen/jsonlite).
+
+```{r}
+library(jsonlite)
+```
+
+## Format 1
+```{r}
+json1 <- '{ 
+  "ID": [1,2,3,4,5],
+  "Name": ["Rick","Dan","Michelle","Ryan","Gary"],
+  "Salary": [623.3,515.2,611,729,843.25],
+  "StartDate": ["1/1/2012","9/23/2013","11/15/2014","5/11/2014","3/27/2015"],
+  "Dept": ["IT","Operations","IT","HR","Finance"]
+}'
+
+x1 <- fromJSON(json1)
+str(x1)
+```
+
+Jadikan `data.frame`!
+
+```{r}
+x1 <- as.data.frame(x1, stringsAsFactors = FALSE)
+str(x1)
+```
+
+## Format 2
+
+```{r}
+json2 <- '[
+  [1, "Rick", 623.3, "1/1/2012", "IT"],
+  [2, "Dan", 515.2, "9/23/2013", "Operations"],
+  [3, "Michelle", 611, "11/15/2014", "IT"],
+  [4, "Ryan", 729, "5/11/2014", "HR"],
+  [5, "Gary", 843.25, "3/27/2015", "Finance"]
+]'
+x2 <- fromJSON(json2)
+str(x2)
+```
+
+```{r}
+x2 <- as.data.frame(x2, stringsAsFactors = F)
+str(x2)
+
+```
+
+## Format 3
+```{r}
+json3 <- '[
+  {
+  "ID":1, "Name":"Rick", "Salary":623.3, "StartDate":"1/1/2012", "Dept":"IT"
+  },
+  {
+  "ID":2, "Name":"Dan", "Salary":515.2, "StartDate":"9/23/2013", "Dept":"Operations"
+  },
+  {
+  "ID":3, "Name":"Michelle", "Salary":611, "StartDate":"11/15/2014", "Dept":"IT"
+  },
+  {
+  "ID":4, "Name":"Ryan", "Salary":729, "StartDate":"5/11/2014", "Dept":"HR"
+  },
+  {
+  "ID":5, "Name":"Gary", "Salary":843.25, "StartDate":"3/27/2015", "Dept":"Finance"
+  }
+]'
+x3 <- fromJSON(json3)
+str(x3)
+
+```
+
+# Read JSON From Website
+
+```{r}
+# Read JSON data from website: infopemilu.kpu.go.id
+dps2019 <- fromJSON("https://pemilu2019.kpu.go.id/static/json/hhcw/ppwp.json")
+# View(dps2019)
+head(dps2019$table)
+```
+
+```{r}
+dps2019 <- do.call(rbind.data.frame, dps2019$table)
+str(dps2019)
+head(dps2019)
+```
+
+# Export Dataframe As JSON
+
+```{r}
+write_json(dps2019, "dps2019.json", pretty = TRUE, dataframes = "rows")
+```
+
+# Read Local JSON File
+
+```{r}
+# Read JSON data from local .json file
+dps2018 <- fromJSON('dps2018.json', simplifyDataFrame = TRUE)
+str(dps2018)
+head(dps2018)
+```
+
+## Explore
+
+```{r}
+library(dplyr)
+# How many 'Kelurahan' in Dramaga?
+dps2018 %>% 
+  distinct(namaKelurahan) %>% 
+  count() 
+
+# What 5 'Kelurahan' have the largest number of TPS?
+dps2018 %>% 
+  arrange(desc(jmlTps)) %>% 
+  select(namaKelurahan, jmlTps) %>% 
+  head(n = 5)
+
+```
+
+# Use ggplot2 package
+```{r}
+library(ggplot2)
+
+dps2018 %>% 
+  ggplot(aes(x = reorder(namaKelurahan, jmlTps), y = jmlTps)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = jmlTps)) +
+  labs(title = "Number of TPS by Kelurahan",
+       y = "Number of TPS",
+       x = "Kelurahan") +
+  coord_flip() +
+  theme_minimal()
+```
+
